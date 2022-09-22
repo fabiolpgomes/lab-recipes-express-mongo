@@ -36,3 +36,7 @@ const recipeSchema = new Schema(
 const Recipe = mongoose.model("Recipe", recipeSchema);
 
 module.exports = Recipe;
+
+
+    // likes: { type: Number, default: 0 },
+    // dislikes: { type: Number, default: 0 },

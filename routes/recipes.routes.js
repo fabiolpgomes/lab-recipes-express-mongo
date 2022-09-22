@@ -19,10 +19,9 @@ router.post("/create", async (req, res) => {
     return res.status(404).json(error);
   }
 });
-module.exports = router;
 
 //2º rota: Acessar todas as receitas - All recipes
-router.get("/", async (req, res) => {
+router.get("/all", async (req, res) => {
   try {
     //const oneAluno = await AlunoModel.find({ _id: id });
     const recipe = await RecipeModel.find();
@@ -32,7 +31,6 @@ router.get("/", async (req, res) => {
     return res.status(400).json(error);
   }
 });
-module.exports = router;
 
 //3º rota: Acessar uma única receita pelo seu ID
 router.get("/:id", async (req, res) => {
@@ -47,7 +45,6 @@ router.get("/:id", async (req, res) => {
     return res.status(400).json(error);
   }
 });
-module.exports = router;
 
 //4º rota: Criar várias receitas de uma só vez
 router.post("/create/allrecipes", async (req, res) => {
@@ -62,12 +59,21 @@ router.post("/create/allrecipes", async (req, res) => {
   }
 });
 
-module.exports = router;
-
 //6º rota: Acessar todos os usuários que favoritaram essa receita
-
+router.get("/favoriteusers/:idRecipe", async (req, res) => {
+  try {
+    const { idRecipe } = req.params;
+    const favoriteUsers = await UserModel.find({ favorites: idRecipe });
+    return res.status(200).json({ favoriteUsers });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message : error.message });
+  }
+});
 //7º rota: Acessar todos os usuários que deram dislike essa receita
 
 //!5º rota: Deletar uma receita pelo seu ID - retira-la da array de favorites e dislikes dos USERS
 
 //Não se esqueça de exportar o router!
+
+module.exports = router;

@@ -9,21 +9,33 @@ const UserModel = require("../models/User.model");
 
 //1º rota: Criar uma receita   Iteration 2 - Create a recipe
 router.post("/create", async (req, res) => {
-    //rota> localhost:4000/recipes/create
-    try {
-      const newRecipe = await RecipeModel.create({ ...req.body });
+  //rota> localhost:4000/recipes/create
+  try {
+    const newRecipe = await RecipeModel.create({ ...req.body });
 
-      return res.status(200).json(newRecipe)
-    } catch (error) {
-      console.log(error);
-      return res.status(404).json(error);
-    }
-  });
-  
-  module.exports = router;
+    return res.status(200).json(newRecipe);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json(error);
+  }
+});
 
+module.exports = router;
 
 //2º rota: Acessar todas as receitas
+router.post("/create/allrecipes", async (req, res) => {
+  //rota> localhost:4000/recipes/create
+  try {
+    const newRecipe = await RecipeModel.insertMany([...req.body]);
+
+    return res.status(201).json(newRecipe);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json(error);
+  }
+});
+
+module.exports = router;
 
 //3º rota: Acessar uma única receita pelo seu ID
 

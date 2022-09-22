@@ -38,6 +38,19 @@ router.post("/create/allrecipes", async (req, res) => {
 module.exports = router;
 
 //3º rota: Acessar uma única receita pelo seu ID
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    //const oneAluno = await AlunoModel.find({ _id: id });
+    const recipe = await RecipeModel.findById(id);
+
+    return res.status(200).json(recipe);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+});
+module.exports = router;
 
 //4º rota: Criar várias receitas de uma só vez
 

@@ -19,22 +19,19 @@ router.post("/create", async (req, res) => {
     return res.status(404).json(error);
   }
 });
-
 module.exports = router;
 
-//2º rota: Acessar todas as receitas
-router.post("/create/allrecipes", async (req, res) => {
-  //rota> localhost:4000/recipes/create
+//2º rota: Acessar todas as receitas - All recipes
+router.get("/", async (req, res) => {
   try {
-    const newRecipe = await RecipeModel.insertMany([...req.body]);
+    //const oneAluno = await AlunoModel.find({ _id: id });
+    const recipe = await RecipeModel.find();
 
-    return res.status(201).json(newRecipe);
+    return res.status(200).json(recipe);
   } catch (error) {
-    console.log(error);
-    return res.status(404).json(error);
+    return res.status(400).json(error);
   }
 });
-
 module.exports = router;
 
 //3º rota: Acessar uma única receita pelo seu ID
@@ -53,6 +50,19 @@ router.get("/:id", async (req, res) => {
 module.exports = router;
 
 //4º rota: Criar várias receitas de uma só vez
+router.post("/create/allrecipes", async (req, res) => {
+  //rota> localhost:4000/recipes/create
+  try {
+    const newRecipe = await RecipeModel.insertMany([...req.body]);
+
+    return res.status(201).json(newRecipe);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json(error);
+  }
+});
+
+module.exports = router;
 
 //6º rota: Acessar todos os usuários que favoritaram essa receita
 

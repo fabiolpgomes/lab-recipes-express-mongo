@@ -67,10 +67,20 @@ router.get("/favoriteusers/:idRecipe", async (req, res) => {
     return res.status(200).json({ favoriteUsers });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message : error.message });
+    return res.status(500).json({ message: error });
   }
 });
 //7º rota: Acessar todos os usuários que deram dislike essa receita
+router.get("/dislikesusers/:id", async (req, res) => {
+  try {
+    const { idRecipe } = req.params;
+    const desfavoriteusers = await UserModel.find({ dislikes: idRecipe });
+    return res.status(200).json({ desfavoriteusers });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error });
+  }
+});
 
 //!5º rota: Deletar uma receita pelo seu ID - retira-la da array de favorites e dislikes dos USERS
 

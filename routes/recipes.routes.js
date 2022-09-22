@@ -7,7 +7,7 @@ const router = express.Router();
 const RecipeModel = require("../models/Recipe.model");
 const UserModel = require("../models/User.model");
 
-//1º rota: Criar uma receita   Iteration 2 - Create a recipegit 
+//1º rota: Criar uma receita   Iteration 2 - Create a recipe
 router.post("/create", async (req, res) => {
     //rota> localhost:4000/recipes/create
     try {

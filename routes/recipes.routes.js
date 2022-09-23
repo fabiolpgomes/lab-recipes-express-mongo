@@ -12,7 +12,6 @@ router.post("/create", async (req, res) => {
   //rota> localhost:4000/recipes/create
   try {
     const newRecipe = await RecipeModel.create({ ...req.body });
-
     return res.status(200).json(newRecipe);
   } catch (error) {
     console.log(error);
@@ -23,9 +22,7 @@ router.post("/create", async (req, res) => {
 //2º rota: Acessar todas as receitas - All recipes
 router.get("/all", async (req, res) => {
   try {
-    //const oneAluno = await AlunoModel.find({ _id: id });
     const recipe = await RecipeModel.find();
-
     return res.status(200).json(recipe);
   } catch (error) {
     return res.status(400).json(error);
@@ -34,12 +31,10 @@ router.get("/all", async (req, res) => {
 
 //3º rota: Acessar uma única receita pelo seu ID
 router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const { id } = req.params;
-
-    //const oneAluno = await AlunoModel.find({ _id: id });
     const recipe = await RecipeModel.findById(id);
-
     return res.status(200).json(recipe);
   } catch (error) {
     return res.status(400).json(error);
@@ -51,7 +46,6 @@ router.post("/create/allrecipes", async (req, res) => {
   //rota> localhost:4000/recipes/create
   try {
     const newRecipe = await RecipeModel.insertMany([...req.body]);
-
     return res.status(201).json(newRecipe);
   } catch (error) {
     console.log(error);
@@ -70,6 +64,7 @@ router.get("/favoriteusers/:idRecipe", async (req, res) => {
     return res.status(500).json({ message: error });
   }
 });
+
 //7º rota: Acessar todos os usuários que deram dislike essa receita
 router.get("/dislikesusers/:id", async (req, res) => {
   try {
@@ -82,10 +77,21 @@ router.get("/dislikesusers/:id", async (req, res) => {
   }
 });
 
-
 //!5º rota: Deletar uma receita pelo seu ID - retira-la da array de favorites e dislikes dos USERS
-
-
+router.delete("/recepie/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleteRecipe = await RecipeModel.findByIdAndDelete(id);
+    await UserModel.updateMany({ favorites: id }, { $pull: { favorites: id } });
+    await UserModel.updateMany({ dislikes: id }, { $pull: { dislikes: id } });
+    return res.status(200).json(deleteRecipe);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
+});
 
 //Não se esqueça de exportar o router!
 module.exports = router;
+
+// Incluir 2 campos Likes e Dislikes no models Recipe.model.js

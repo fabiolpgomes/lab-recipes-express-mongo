@@ -1,31 +1,22 @@
-
 //importar o express
 const express = require("express");
 // instanciar as rotas pegando do express
 const router = express.Router();
 
-
 //importar os models
 const UserModel = require("../models/User.model");
 const RecipeModel = require("../models/Recipe.model");
 
-
-
-
-
 //1º rota: Criar um user
 router.post("/create", async (req, res) => {
   try {
-  const newUser = await UserModel.create({ ...req.body });
-  return res.status(201).json(newUser);
-  
-} catch (error) {
-  console.log(error);
+    const newUser = await UserModel.create({ ...req.body });
+    return res.status(201).json(newUser);
+  } catch (error) {
+    console.log(error);
     return res.status(404).json(error);
   }
 });
-
-
 
 //2º rota: Pegar todos os users
 router.get("/all", async (req, res) => {
@@ -38,8 +29,6 @@ router.get("/all", async (req, res) => {
   }
 });
 
-
-
 //3º rota: Acessar um usuário pelo seu ID
 router.get("/:id", async (req, res) => {
   try {
@@ -50,7 +39,6 @@ router.get("/:id", async (req, res) => {
     return res.status(404).json(error);
   }
 });
-
 
 //4º Adicionar uma receita na array de favorites
 router.put("/addFavorite/:idUser/:idRecipe", async (req, res) => {
@@ -72,7 +60,7 @@ router.put("/addFavorite/:idUser/:idRecipe", async (req, res) => {
     { new: true }
   ).populate("favorites");
 
-  await RecipeModel.findByIdAndUpdate(idRecipe, {$inc : {likes : 1 } });
+  await RecipeModel.findByIdAndUpdate(idRecipe, { $inc: { likes: 1 } });
 
   return res.status(200).json(userUpdate);
 });
@@ -96,7 +84,6 @@ router.put("/addDislike/:idUser/:idRecipe", async (req, res) => {
   return res.status(200).json(userUpdate);
 });
 
-
 //6º Remover uma receita na array de favorite
 
 router.put("/removeFavorite/:idUser/:idRecipe", async (req, res) => {
@@ -116,7 +103,6 @@ router.put("/removeFavorite/:idUser/:idRecipe", async (req, res) => {
 
   return res.status(200).json(userUpdate);
 });
-
 
 //7º Remover uma receita na array de deslikes
 router.put("/removeDislike/:idUser/:idRecipe", async (req, res) => {

@@ -1,112 +1,81 @@
 //Escreva suas rotas para as receitas aqui//
-const express = require("express");
-const router = express.Router();
+
 //Importe o express e instancie o Router aqui
+//importar o express
+const express = require("express");
+// instanciar as rotas pegando do express
+const router = express.Router();
 
 // Importe os models aqui
 const RecipeModel = require("../models/Recipe.model");
-const { findByIdAndUpdate } = require("../models/User.model");
 const UserModel = require("../models/User.model");
 
-//1º rota: Criar uma receita   Iteration 2 - Create a recipe
+//1º rota: Criar uma receita
 router.post("/create", async (req, res) => {
-  //rota> localhost:4000/recipes/create
-  try {
-    const newRecipe = await RecipeModel.create({ ...req.body });
-    return res.status(200).json(newRecipe);
-  } catch (error) {
-    console.log(error);
-    return res.status(404).json(error);
-  }
+  const newUser = await RecipeModel.create({ ...req.body });
+
+  return res.status(201).json(newUser);
 });
 
-//2º rota: Acessar todas as receitas - All recipes
+//2º rota: Acessar todas as receitas
 router.get("/all", async (req, res) => {
-  try {
-    const recipe = await RecipeModel.find();
-    return res.status(200).json(recipe);
-  } catch (error) {
-    return res.status(400).json(error);
-  }
+  const allRecipes = await RecipeModel.find();
+
+  return res.status(200).json(allRecipes);
 });
-
-
-
-//Post Create route POST /:Id
- router.post ("/:Id", async (req, res) => {
- const { Id } = req.params; 
- try {
-   const recipe = await RecipeModel.findByIdAndUpdate(Id,{...req.body}, {new: true});
-   return res.status(200).json(recipe);
- } catch (error) {
-   console.log(error);
-   return res.status(400).json(error);
- }
-});
-
 
 //3º rota: Acessar uma única receita pelo seu ID
-router.get("/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const recipe = await RecipeModel.findById(id);
-    return res.status(200).json(recipe);
-  } catch (error) {
-    return res.status(400).json(error);
-  }
-});
 
 //4º rota: Criar várias receitas de uma só vez
-router.post("/create/allrecipes", async (req, res) => {
-  //rota> localhost:4000/recipes/create
-  try {
-    const newRecipe = await RecipeModel.insertMany([...req.body]);
-    return res.status(201).json(newRecipe);
-  } catch (error) {
-    console.log(error);
-    return res.status(404).json(error);
-  }
+router.post("/create-many", async (req, res) => {
+  const recipes = await RecipeModel.insertMany([...req.body]);
+  return res.status(200).json(recipes);
+});
+
+//5º rota: Deletar uma receita pelo seu ID - não esqueça de remover a ref do UserModel
+router.delete("/delete/:idRecipe", async (req, res) => {
+  const { idRecipe } = req.params;
+  const deleteRecipe = await RecipeModel.findByIdAndDelete(idRecipe);
+
+  //remover as referencias
+  await UserModel.updateMany(
+    {
+      $or: [
+        { favorites: { $in: [idRecipe] } },
+        { dislikes: { $in: [idRecipe] } },
+      ],
+    },
+    {
+      $pull: {
+        favorites: idRecipe,
+        dislikes: idRecipe,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  return res.status(200).json(deleteRecipe);
 });
 
 //6º rota: Acessar todos os usuários que favoritaram essa receita
-router.get("/favoriteusers/:idRecipe", async (req, res) => {
-  try {
-    const { idRecipe } = req.params;
-    const favoriteUsers = await UserModel.find({ favorites: idRecipe });
-    return res.status(200).json({ favoriteUsers });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: error });
-  }
+router.get("/users-like/:idRecipe", async (req, res) => {
+  const { idRecipe } = req.params;
+
+  const users = await UserModel.find({ favorites: idRecipe });
+
+  return res.status(200).json(users);
 });
 
 //7º rota: Acessar todos os usuários que deram dislike essa receita
-router.get("/dislikesusers/:id", async (req, res) => {
-  try {
-    const { idRecipe } = req.params;
-    const desfavoriteusers = await UserModel.find({ dislikes: idRecipe });
-    return res.status(200).json({ desfavoriteusers });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: error });
-  }
-});
+router.get("/users-dislike/:idRecipe", async (req, res) => {
+  const { idRecipe } = req.params;
 
-// - retira-la da array de favorites e dislikes dos USERS
-router.delete("/recepie/delete/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deleteRecipe = await RecipeModel.findByIdAndDelete(id);
-    await UserModel.updateMany({ favorites: id }, { $pull: { favorites: id } });
-    await UserModel.updateMany({ dislikes: id }, { $pull: { dislikes: id } });
-    return res.status(200).json(deleteRecipe);
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json(error);
-  }
+  const users = await UserModel.find({ dislikes: idRecipe });
+
+  return res.status(200).json(users);
 });
 
 //Não se esqueça de exportar o router!
 module.exports = router;
-

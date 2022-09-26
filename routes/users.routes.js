@@ -113,12 +113,21 @@ router.post("/login", async (req, res) => {
 
 router.get("/profile", isAuth, attachCurrentUser, async (req, res) => {
   try {
-    console.log(req.currentUser); //criado no middle attachCurrentUser
+    // console.log(req.currentUser); //criado no middle attachCurrentUser
+    const loggedUser = req.currentUser;
+    const user = await UserModel.findById(loggerdUser._id);
+    //retorna erro quando o usario esta logado
+    return res.status(404).json({ message: " User not found" });
 
-    return res.status(200).json(req.currentUser);
+    //busca o user que está logado
+
+    //deleta o password e a versão
+    delete user._doc.passwordHash;
+
+    return res.status(200).json(user);
   } catch (error) {
     console.log(error);
-    return res.status(400).json(error);
+    return res.status(500).json({ mensagem: "error message" });
   }
 });
 

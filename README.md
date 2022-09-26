@@ -1,5 +1,3 @@
-![logo_ironhack_blue 7](https://user-images.githubusercontent.com/23629340/40541063-a07a0a8a-601a-11e8-91b5-2f13e4e6b441.png)
-
 # Mongoose Recipes
 
 ## Introduction
@@ -7,34 +5,6 @@
 ![thai_style_chicken_noodle_soup_pieces_recipe_web](https://user-images.githubusercontent.com/23629340/38369283-ac1bda62-38e7-11e8-9c9b-d9df623f1bc3.jpg)
 
 We've learned how to use Mongoose to create Schemas and then interact with our MongoDB database. In the following exercise, we will practice how to implement this by creating awesome recipes.
-
-## Requirements
-
-- Fork this repo
-- Clone this repo
-
-## Submission
-
-- Upon completion, run the following commands:
-
-  ```
-  git add .
-  git commit -m "Completed lab"
-  git push origin master
-  ```
-
-- Create Pull Request so your TAs can check up your work.
-
-## Instructions
-
-
-### Iteration 0: Initial setup
-
-To run our application, the first thing you have to do is to install all of its dependencies. Run the following command:
-
-```shell
-$ npm install
-```
 
 
 ### Iteration 1 - Recipe Schema

@@ -10,21 +10,52 @@ const router = express.Router();
 const RecipeModel = require("../models/Recipe.model");
 const UserModel = require("../models/User.model");
 
-//1º rota: Criar uma receita
-router.post("/create", async (req, res) => {
-  const newUser = await RecipeModel.create({ ...req.body });
+const isAuth = require("../middlewares/isAuth");
+const attachCurrentUser = require("../middlewares/attachCurrentUser");
+const isAdmin = require("../middlewares/isAdmin");
 
-  return res.status(201).json(newUser);
+
+
+//1º rota: Criar uma receita
+router.post("/create", isAuth, attachCurrentUser, isAdmin, async (req, res) => {
+  try {
+    const newRecipe = await RecipeModel.create({ ...req.body });
+
+    return res.status(201).json(newRecipe);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
 });
 
 //2º rota: Acessar todas as receitas
-router.get("/all", async (req, res) => {
-  const allRecipes = await RecipeModel.find();
-
-  return res.status(200).json(allRecipes);
+router.get("/all", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+    const allRecipes = await RecipeModel.find();
+    return res.status(200).json(allRecipes);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
 });
 
+
 //3º rota: Acessar uma única receita pelo seu ID
+router.get("/recipe", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+    const { idRecipe } = req.params;
+    const oneRecipe = await RecipeModel.findById(idRecipe);
+    return res.status(200).json(oneRecipe);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
+});
+
+
+
+
+
 
 //4º rota: Criar várias receitas de uma só vez
 router.post("/create-many", async (req, res) => {

@@ -3,15 +3,16 @@ const express = require("express");
 // instanciar as rotas pegando do express
 const router = express.Router();
 
-const bcrypt = require("bcrypt");
-const saltRounds = 10; // Define a quantidade de "saltos que serão adicionados a criptografia da senha"
-
 //importar os models
 const UserModel = require("../models/User.model");
+
+const bcrypt = require("bcrypt");
+const saltRounds = 10; // Define a quantidade de "saltos que serão adicionados a criptografia da senha"
 
 const generateToken = require("../config/jwt.config");
 const isAuth = require("../middlewares/isAuth");
 const attachCurrentUser = require("../middlewares/attachCurrentUser");
+const isAdmin = require("../middlewares/isAdmin");
 
 // Sign up -  1º rota: Criar um user
 router.post("/sign-up", async (req, res) => {
@@ -115,78 +116,119 @@ router.get("/profile", isAuth, attachCurrentUser, async (req, res) => {
   try {
     // console.log(req.currentUser); //criado no middle attachCurrentUser
     const loggedUser = req.currentUser;
-    const user = await UserModel.findById(loggerdUser._id);
-    //retorna erro quando o usario esta logado
-    return res.status(404).json({ message: " User not found" });
-
     //busca o user que está logado
 
-    //deleta o password e a versão
-    delete user._doc.passwordHash;
+    if (!loggedUser) {
+      return res.status(404).json({ message: " User not found" });
+    }
+    const user = await UserModel.findById(loggedUser._id);
+    //retorna erro quando o usario esta logado
+
+    delete user._doc.passwordHash; //deletar o password e a versao
+    delete user._doc._v;
 
     return res.status(200).json(user);
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ mensagem: "error message" });
+    return res.status(404).json({ message: " User not found" });
   }
 });
 
-//3º rota: Acessar um usuário pelo seu ID
-router.get("/:id", async (req, res) => {
+//3º rota: Acessar todas as receitas - Usuario Admin
+router.get("/all", isAuth, attachCurrentUser, isAdmin, async (req, res) => {
   try {
-    const userId = req.params;
-    return res.status(200).json(userId);
+    const allUsers = await UserModel.find({}, { passwordHash: 0, __v: 0 });
+    return res.status(200).json(allUsers);
   } catch (error) {
     console.log(error);
     return res.status(404).json(error);
   }
 });
 
-//4º Adicionar uma receita na array de favorites
-router.put("/addFavorite/:idUser/:idRecipe", async (req, res) => {
-  const { idUser, idRecipe } = req.params;
+//4º Editar um usuario 
+router.put("/edit", isAuth, attachCurrentUser, async (req, res) => {
+try {  
+  const idUser = req.currentUser._id;
+  const newName = req.body.name;
+  const editedUser = await UserModel.findIdAndUpdate(
+    idUser,
+  { name: newname,
+  },
+  { new: true, runValidators: true}
+);
 
-  //conferir se a receita já não foi adicionada
-  const user = await UserModel.findById(idUser);
-  if (user.favorites.includes(idRecipe)) {
-    return res.status(400).json("receita já adicionada");
+    delete editedUser._doc.passwordHash;
+    delete editedUser._doc.__v;
+
+    return res.status(200).json(editedUser);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
   }
-
-  const userUpdate = await UserModel.findByIdAndUpdate(
-    idUser,
-    {
-      $push: {
-        favorites: idRecipe,
-      },
-    },
-    { new: true }
-  ).populate("favorites");
-
-  await RecipeModel.findByIdAndUpdate(idRecipe, { $inc: { likes: 1 } });
-
-  return res.status(200).json(userUpdate);
 });
 
-//5º Adicionar uma receita na array de deslikes
-router.put("/addDislike/:idUser/:idRecipe", async (req, res) => {
-  const { idUser, idRecipe } = req.params;
+//5º Deletar um usuario que tem receita preferida 
+router.delete("/delete", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+    const idUser = req.currentUser._id;
 
-  const userUpdate = await UserModel.findByIdAndUpdate(
-    idUser,
-    {
-      $push: {
-        dislikes: idRecipe,
+    const userLikes = await UserModel.findOne(
+      {
+        _id: idUser,
       },
-    },
-    { new: true }
-  ).populate("dislikes");
+      {
+        favorites: 1,
+      }
+    );
 
-  await RecipeModel.findByIdAndUpdate(idRecipe, { $inc: { dislikes: 1 } });
+    userLikes.favorites.forEach(async (likedRecipe) => {
+      await RecipeModel.findByIdAndUpdate(
+        likedRecipe,
+        {
+          $inc: { likes: -1 },
+        },
+        { new: true }
+      );
+    });
 
-  return res.status(200).json(userUpdate);
+    const userDislikes = await UserModel.findOne(
+      {
+        _id: idUser,
+      },
+      {
+        dislikes: 1,
+      }
+    );
+
+    userDislikes.dislikes.forEach(async (dislikedRecipe) => {
+      await RecipeModel.findByIdAndUpdate(
+        dislikedRecipe,
+        {
+          $inc: { dislikes: -1 },
+        },
+        { new: true }
+      );
+    });
+
+    const deletedUser = await UserModel.findByIdAndDelete(idUser);
+
+    delete deletedUser._doc.passwordHash;
+    delete deletedUser._doc.__v;
+
+    return res.status(200).json(deletedUser);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
 });
 
-//6º Remover uma receita na array de favorite
+
+
+
+
+
+
+//5º Remover um usuario de uma receita na array de favorite
 
 router.put("/removeFavorite/:idUser/:idRecipe", async (req, res) => {
   const { idUser, idRecipe } = req.params;

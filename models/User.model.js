@@ -18,10 +18,11 @@ const clientSchema = new Schema(
       unique: true,
       match: /[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/gm,
     },
-    passwordHash: {type: String, required: true},
+    passwordHash: { type: String, required: true },
     favorites: [{ type: Schema.Types.ObjectId, ref: "Recipe" }],
     dislikes: [{ type: Schema.Types.ObjectId, ref: "Recipe" }],
     role: { type: String, enum: ["ADMIN", "USER"], default: "USER" },
+    emailConfirm: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

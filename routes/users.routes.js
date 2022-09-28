@@ -14,12 +14,24 @@ const isAuth = require("../middlewares/isAuth");
 const attachCurrentUser = require("../middlewares/attachCurrentUser");
 const isAdmin = require("../middlewares/isAdmin");
 
-// Sign up -  1º rota: Criar um user
+const nodemailer = require("nodemailer");
+
+let transporter = nodemailer.createTransport({
+  service: process.env.SERVICE,
+  auth: {
+    secure: false,
+    user: process.env.USER,
+    pass: process.env.PASS,
+  },
+});
+
+// Sign up -  1º rota: Criar um user (Login com senha)
 router.post("/sign-up", async (req, res) => {
   try {
     //capturando o password enviado no corpo da requisicao
-    const { password } = req.body;
+    const { password, email } = req.body;
 
+    //checando se a senha existe e se ela passou na RegEx
     if (
       //checando se existe esse campo o req.body
       !password ||
@@ -30,14 +42,18 @@ router.post("/sign-up", async (req, res) => {
     ) {
       return res
         .status(400)
-        .json({ message: "Senha nâo tem os requisitos necessários." });
+        .json({
+          message: "Password does not have the necessary requirements.",
+        });
     }
 
     //gerar o salt com a quantidade de saltos definida(10)
     const salt = await bcrypt.genSalt(saltRounds); //chamar a funcao hash da biblioteca e passar a senha juntamente com o salt criado
+    console.log(salt);
 
     //chamar a função hash da biblioteca e passar a senha juntamente com o salt criado
     const hashedPassword = await bcrypt.hash(password, salt);
+    console.log(hashedPassword);
 
     //criar a entrada no banco e dados adicionando a senha hasheada no campo: passwordHash
     const user = await UserModel.create({
@@ -48,10 +64,26 @@ router.post("/sign-up", async (req, res) => {
     //deletar o campo da senha antes de devolver o usuario para a response
     delete user._doc.passwordHash;
 
-    return res.status(201).json(user);
+    //return res.status(201).json(user);
+
+    //envio de email   <<<===== ADD
+    //configurando o email que será enviado!
+
+    const mailOptions = {
+      from: "turma85wdft@hotmail.com", // nossa email
+      to: email, //email do usuário que se cadastrou
+      subject: "Ativação de conta", //assunto
+      html: `<p>Clique no link para ativar sua conta:</p>
+      <a href=http://localhost:4000/users/activate-account/${newUser._id}>LINK</a>`,
+    };
+
+    //Dispara e=mail para o usuario
+    await transporter.sendMail(mailOptions);
+
+    return res.status(201).json(newUser);
   } catch (error) {
     console.log(error);
-    return res.status(500).json(error);
+    return res.status(400).json(error);
   }
 });
 
@@ -145,17 +177,16 @@ router.get("/all", isAuth, attachCurrentUser, isAdmin, async (req, res) => {
   }
 });
 
-//4º Editar um usuario 
+//4º Editar um usuario
 router.put("/edit", isAuth, attachCurrentUser, async (req, res) => {
-try {  
-  const idUser = req.currentUser._id;
-  const newName = req.body.name;
-  const editedUser = await UserModel.findIdAndUpdate(
-    idUser,
-  { name: newname,
-  },
-  { new: true, runValidators: true}
-);
+  try {
+    const idUser = req.currentUser._id;
+    const newName = req.body.name;
+    const editedUser = await UserModel.findIdAndUpdate(
+      idUser,
+      { name: newname },
+      { new: true, runValidators: true }
+    );
 
     delete editedUser._doc.passwordHash;
     delete editedUser._doc.__v;
@@ -167,7 +198,7 @@ try {
   }
 });
 
-//5º Deletar um usuario que tem receita preferida 
+//5º Deletar um usuario que tem receita preferida
 router.delete("/delete", isAuth, attachCurrentUser, async (req, res) => {
   try {
     const idUser = req.currentUser._id;
@@ -221,12 +252,6 @@ router.delete("/delete", isAuth, attachCurrentUser, async (req, res) => {
     return res.status(400).json(error);
   }
 });
-
-
-
-
-
-
 
 //5º Remover um usuario de uma receita na array de favorite
 

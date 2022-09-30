@@ -14,17 +14,16 @@ const isAuth = require("../middlewares/isAuth");
 const attachCurrentUser = require("../middlewares/attachCurrentUser");
 const isAdmin = require("../middlewares/isAdmin");
 
+//configurando o Trasnporter
 const nodemailer = require("nodemailer");
-
 let transporter = nodemailer.createTransport({
-  service: process.env.SERVICE,
+  service: "Hotmail",
   auth: {
-    secure: false,
-    user: process.env.USER,
-    pass: process.env.PASS,
+    user: "turma85wdft@hotmail.com",
+    pass: "SenhaSegura@123",
   },
 });
-
+// const logRequests = require("../middlewares/requests");
 // Sign up -  1º rota: Criar um user (Login com senha)
 router.post("/sign-up", async (req, res) => {
   try {
@@ -40,11 +39,9 @@ router.post("/sign-up", async (req, res) => {
         /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[$*&@#])[0-9a-zA-Z$*&@#]{8,}$/
       )
     ) {
-      return res
-        .status(400)
-        .json({
-          message: "Password does not have the necessary requirements.",
-        });
+      return res.status(400).json({
+        message: "Password does not have the necessary requirements.",
+      });
     }
 
     //gerar o salt com a quantidade de saltos definida(10)
@@ -73,14 +70,35 @@ router.post("/sign-up", async (req, res) => {
       from: "turma85wdft@hotmail.com", // nossa email
       to: email, //email do usuário que se cadastrou
       subject: "Ativação de conta", //assunto
-      html: `<p>Clique no link para ativar sua conta:</p>
-      <a href=http://localhost:4000/users/activate-account/${newUser._id}>LINK</a>`,
+      html: `<p>Clique no link para ativar sua conta:<p> <a href=http://localhost:4000/users/activate-account/${user._id}>LINK</a>`,
     };
 
     //Dispara e=mail para o usuario
     await transporter.sendMail(mailOptions);
 
-    return res.status(201).json(newUser);
+    return res.status(201).json(user);
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json(error);
+  }
+});
+
+// Rota após clicar no Link de ativacao do email recebido
+router.get("/activate-account/:idUser", async (req, res) => {
+  try {
+    const { idUser } = req.params;
+
+    const user = await UserModel.findOne({ _id: idUser });
+
+    if (!user) {
+      return res.send("Erro na ativação da conta");
+    }
+
+    await UserModel.findByIdAndUpdate(idUser, {
+      emailConfirm: true,
+    });
+
+    res.send(`<h1>Usuário ativado</h1>`);
   } catch (error) {
     console.log(error);
     return res.status(400).json(error);

@@ -6,6 +6,7 @@ function logRequests(req, res, next) {
   req.teste = "eu criei essa chave e agora ela tá disponível na rota";
 
   next();
+  
 }
 
 module.exports = logRequests;

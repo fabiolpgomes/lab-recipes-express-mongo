@@ -23,6 +23,7 @@ let transporter = nodemailer.createTransport({
     pass: "SenhaSegura@123",
   },
 });
+
 // const logRequests = require("../middlewares/requests");
 // Sign up -  1º rota: Criar um user (Login com senha)
 router.post("/sign-up", async (req, res) => {

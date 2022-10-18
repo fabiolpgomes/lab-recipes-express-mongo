@@ -18,7 +18,6 @@ const UsersRoute = require("./routes/users.routes");
 app.use("/users", UsersRoute);
 
 
-
 app.listen(Number(process.env.PORT), () => {
   console.log("Server up and running on port", process.env.PORT);
 });
